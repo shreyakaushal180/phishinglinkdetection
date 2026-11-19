@@ -1,10 +1,10 @@
-# 🛡️ PhishGuard AI — Phishing URL Detector
+#  PhishGuard AI — Phishing URL Detector
 
 A professional, full-stack phishing URL detection web app powered by a **Random Forest + XGBoost ensemble** trained on the **PhiUSIIL** dataset from Kaggle.
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 phishing-detector/
@@ -26,7 +26,7 @@ phishing-detector/
 
 ---
 
-## 🚀 Quick Start (Windows)
+##  Quick Start (Windows)
 
 ### Option A — Double-click launcher
 ```
@@ -55,7 +55,7 @@ start http://localhost:5000
 
 ---
 
-## 🔑 Kaggle Authentication
+##  Kaggle Authentication
 
 The dataset is downloaded via KaggleHub. On first run you may be prompted for credentials.  
 Set them as environment variables:
@@ -71,7 +71,7 @@ Get your API key at: https://www.kaggle.com/settings → Account → API
 
 ---
 
-## 🤖 AI Model Details
+##  AI Model Details
 
 | Component      | Details |
 |----------------|---------|
@@ -90,7 +90,7 @@ Get your API key at: https://www.kaggle.com/settings → Account → API
 
 ---
 
-## 🌐 API Reference
+##  API Reference
 
 ### `POST /api/predict`
 ```json
@@ -118,6 +118,6 @@ Returns whether the model is loaded and ready.
 
 ---
 
-## ⚠️ Disclaimer
+##  Disclaimer
 
 This tool is built for **educational and research purposes**. It is not a substitute for a comprehensive security solution. Always exercise caution when clicking on unknown links.
