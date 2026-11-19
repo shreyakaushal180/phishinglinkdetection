@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phishing Link Detection System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background-color: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 650px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #f0f6fc;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: #8b949e;
+      font-size: 14px;
+    }
+
+    .input-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 16px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #f0f6fc;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #58a6ff;
+    }
+
+    button {
+      background: #238636;
+      color: #ffffff;
+      border: none;
+      padding: 12px 22px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background: #2ea043;
+    }
+
+    /* Result Banner */
+    .result-box {
+      display: none;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .result-phishing {
+      display: block;
+      background: rgba(248, 81, 73, 0.15);
+      border: 1px solid #f85149;
+      color: #ff7b72;
+    }
+
+    .result-safe {
+      display: block;
+      background: rgba(46, 160, 67, 0.15);
+      border: 1px solid #2ea043;
+      color: #3fb950;
+    }
+
+    /* Quick Test List */
+    .sample-section {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid #21262d;
+    }
+
+    .sample-section h3 {
+      font-size: 13px;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .sample-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 140px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .sample-link-btn {
+      background: #21262d;
+      color: #8b949e;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .sample-link-btn:hover {
+      background: #30363d;
+      color: #c9d1d9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>Phishing Link Detection</h1>
+      <p>Enter any URL to instantly verify link authenticity</p>
+    </div>
+
+    <div class="input-box">
+      <input type="text" id="urlInput" placeholder="Paste link here..." autocomplete="off" />
+      <button onclick="checkLink()">Detect Link</button>
+    </div>
+
+    <!-- Output Banner -->
+    <div id="resultBox" class="result-box"></div>
+
+    <div class="sample-section">
+      <h3>Quick Test Links (Click to test)</h3>
+      <div class="sample-links" id="sampleContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    // Exact list of targeted phishing URLs specified
+    const phishingLinks = new Set([
+      "http://paypa1-login-security.example.com/verify-account",
+      "http://paypa1-login.example/verify",
+      "http://google-security.example/account",
+      "http://amazon-prize.example/claim",
+      "http://facebook-login.example/confirm",
+      "http://instagram-verify.example/login",
+      "http://bank-update.example/secure",
+      "http://netflix-payment.example/update",
+      "http://sbi-kyc-update.example/verify",
+      "http://free-gift.example/winner",
+      "http://account-suspended.example/unlock",
+      "http://secure-login.example/signin",
+      "http://verify-identity.example/user",
+      "http://paypal.example.com.login.example/",
+      "http://192.0.2.10/login",
+      "http://login.example/secure/account/verify",
+      "http://gift-card-claim.example/redeem",
+      "http://password-reset.example/confirm",
+      "http://free-iphone.example/claim-prize",
+      "http://email-storage-full.example/login",
+      "http://urgent-bank-alert.example/validate"
+    ]);
+
+    function normalizeUrl(url) {
+      if (!url) return "";
+      return url.trim().toLowerCase().replace(/\/+$/, "");
+    }
+
+    // Build normalized lookup set
+    const normalizedPhishingSet = new Set();
+    phishingLinks.forEach(link => {
+      normalizedPhishingSet.add(normalizeUrl(link));
+    });
+
+    function checkLink() {
+      const input = document.getElementById("urlInput").value;
+      const resultBox = document.getElementById("resultBox");
+
+      if (!input.trim()) {
+        resultBox.className = "result-box";
+        resultBox.style.display = "none";
+        return;
+      }
+
+      const cleanInput = normalizeUrl(input);
+
+      if (normalizedPhishingSet.has(cleanInput)) {
+        resultBox.className = "result-box result-phishing";
+        resultBox.textContent = "Phishing link detected";
+      } else {
+        resultBox.className = "result-box result-safe";
+        resultBox.textContent = "No phishing link detected";
+      }
+    }
+
+    // Trigger on Enter key
+    document.getElementById("urlInput").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        checkLink();
+      }
+    });
+
+    // Populate quick test list
+    const container = document.getElementById("sampleContainer");
+    phishingLinks.forEach(link => {
+      const btn = document.createElement("button");
+      btn.className = "sample-link-btn";
+      btn.textContent = link;
+      btn.onclick = () => {
+        document.getElementById("urlInput").value = link;
+        checkLink();
+      };
+      container.appendChild(btn);
+    });
+
+    // Add normal link for demo test
+    const legitBtn = document.createElement("button");
+    legitBtn.className = "sample-link-btn";
+    legitBtn.style.color = "#3fb950";
+    legitBtn.textContent = "https://www.google.com (Legitimate)";
+    legitBtn.onclick = () => {
+      document.getElementById("urlInput").value = "https://www.google.com";
+      checkLink();
+    };
+    container.insertBefore(legitBtn, container.firstChild);
+  </script>
+
+</body>
+</html>
