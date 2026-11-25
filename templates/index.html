@@ -175,48 +175,17 @@
 
     <div class="sample-section">
       <h3>Quick Test Links (Click to test)</h3>
-      <div class="sample-links" id="sampleContainer"></div>
+      <div class="sample-links" id="sampleContainer">
+        <button class="sample-link-btn" type="button" data-url="https://www.google.com">https://www.google.com (Legitimate)</button>
+        <button class="sample-link-btn" type="button" data-url="http://paypal.example.com.login.example/verify">http://paypal.example.com.login.example/verify</button>
+        <button class="sample-link-btn" type="button" data-url="http://192.0.2.10/login">http://192.0.2.10/login</button>
+        <button class="sample-link-btn" type="button" data-url="http://free-gift.example/winner">http://free-gift.example/winner</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // Exact list of targeted phishing URLs specified
-    const phishingLinks = new Set([
-      "http://paypa1-login-security.example.com/verify-account",
-      "http://paypa1-login.example/verify",
-      "http://google-security.example/account",
-      "http://amazon-prize.example/claim",
-      "http://facebook-login.example/confirm",
-      "http://instagram-verify.example/login",
-      "http://bank-update.example/secure",
-      "http://netflix-payment.example/update",
-      "http://sbi-kyc-update.example/verify",
-      "http://free-gift.example/winner",
-      "http://account-suspended.example/unlock",
-      "http://secure-login.example/signin",
-      "http://verify-identity.example/user",
-      "http://paypal.example.com.login.example/",
-      "http://192.0.2.10/login",
-      "http://login.example/secure/account/verify",
-      "http://gift-card-claim.example/redeem",
-      "http://password-reset.example/confirm",
-      "http://free-iphone.example/claim-prize",
-      "http://email-storage-full.example/login",
-      "http://urgent-bank-alert.example/validate"
-    ]);
-
-    function normalizeUrl(url) {
-      if (!url) return "";
-      return url.trim().toLowerCase().replace(/\/+$/, "");
-    }
-
-    // Build normalized lookup set
-    const normalizedPhishingSet = new Set();
-    phishingLinks.forEach(link => {
-      normalizedPhishingSet.add(normalizeUrl(link));
-    });
-
-    function checkLink() {
+    async function checkLink() {
       const input = document.getElementById("urlInput").value;
       const resultBox = document.getElementById("resultBox");
 
@@ -226,14 +195,34 @@
         return;
       }
 
-      const cleanInput = normalizeUrl(input);
+      resultBox.className = "result-box";
+      resultBox.style.display = "block";
+      resultBox.textContent = "Analyzing URL...";
 
-      if (normalizedPhishingSet.has(cleanInput)) {
-        resultBox.className = "result-box result-phishing";
-        resultBox.textContent = "Phishing link detected";
-      } else {
-        resultBox.className = "result-box result-safe";
-        resultBox.textContent = "No phishing link detected";
+      try {
+        const response = await fetch("/api/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: input.trim() })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || "Prediction failed");
+        }
+
+        if (data.prediction === 1) {
+          resultBox.className = "result-box result-phishing";
+          resultBox.textContent = "Phishing link detected (" + data.confidence + "% confidence)";
+        } else {
+          resultBox.className = "result-box result-safe";
+          resultBox.textContent = "Legitimate link (" + data.confidence + "% confidence)";
+        }
+      } catch (error) {
+        resultBox.className = "result-box";
+        resultBox.style.display = "block";
+        resultBox.style.border = "1px solid #d29922";
+        resultBox.style.color = "#d29922";
+        resultBox.textContent = error.message;
       }
     }
 
@@ -244,29 +233,12 @@
       }
     });
 
-    // Populate quick test list
-    const container = document.getElementById("sampleContainer");
-    phishingLinks.forEach(link => {
-      const btn = document.createElement("button");
-      btn.className = "sample-link-btn";
-      btn.textContent = link;
-      btn.onclick = () => {
-        document.getElementById("urlInput").value = link;
+    document.querySelectorAll("[data-url]").forEach(function(button) {
+      button.addEventListener("click", function() {
+        document.getElementById("urlInput").value = button.dataset.url;
         checkLink();
-      };
-      container.appendChild(btn);
+      });
     });
-
-    // Add normal link for demo test
-    const legitBtn = document.createElement("button");
-    legitBtn.className = "sample-link-btn";
-    legitBtn.style.color = "#3fb950";
-    legitBtn.textContent = "https://www.google.com (Legitimate)";
-    legitBtn.onclick = () => {
-      document.getElementById("urlInput").value = "https://www.google.com";
-      checkLink();
-    };
-    container.insertBefore(legitBtn, container.firstChild);
   </script>
 
 </body>

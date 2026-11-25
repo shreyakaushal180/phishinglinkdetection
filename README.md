@@ -1,16 +1,17 @@
 #  PhishGuard AI — Phishing URL Detector
 
-A professional, full-stack phishing URL detection web app powered by a **Random Forest + XGBoost ensemble** trained on the **PhiUSIIL** dataset from Kaggle.
+A professional, full-stack phishing URL detection web app powered by a **Random Forest + XGBoost ensemble** trained on the included `Dataset.csv`.
 
 ---
 
-##  Project Structure
+## Project Structure
 
 ```
 phishing-detector/
 ├── app.py                  ← Flask web server (API + serve UI)
-├── train_model.py          ← Dataset download, preprocessing & model training
-├── feature_extractor.py    ← Extracts 40+ features from any URL
+├── Dataset.csv             ← Local training dataset
+├── train_model.py          ← Preprocessing and model training
+├── feature_extractor.py    ← Extracts the 25 model features from a URL
 ├── requirements.txt        ← Python dependencies
 ├── run.bat                 ← One-click Windows launcher
 ├── models/                 ← Saved model artifacts (created after training)
@@ -26,7 +27,7 @@ phishing-detector/
 
 ---
 
-##  Quick Start (Windows)
+## Quick Start (Windows)
 
 ### Option A — Double-click launcher
 ```
@@ -34,7 +35,7 @@ Double-click  run.bat
 ```
 It will automatically:
 1. Install all Python dependencies
-2. Download & train the model (first run only, ~5-10 min)
+2. Train the model from `Dataset.csv` if no model is present
 3. Open the app in your browser at `http://localhost:5000`
 
 ### Option B — Manual steps
@@ -43,7 +44,7 @@ It will automatically:
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Train the model (run once — downloads dataset from Kaggle)
+# 2. Train the model from the included Dataset.csv
 python train_model.py
 
 # 3. Start the web server
@@ -55,42 +56,49 @@ start http://localhost:5000
 
 ---
 
-##  Kaggle Authentication
-
-The dataset is downloaded via KaggleHub. On first run you may be prompted for credentials.  
-Set them as environment variables:
-
-```powershell
-$env:KAGGLE_USERNAME = "your_username"
-$env:KAGGLE_KEY      = "your_api_key"
-```
-
-Or place `kaggle.json` in `C:\Users\<you>\.kaggle\kaggle.json`.
-
-Get your API key at: https://www.kaggle.com/settings → Account → API
-
----
-
-##  AI Model Details
+## AI Model Details
 
 | Component      | Details |
 |----------------|---------|
 | Algorithms     | Random Forest (200 trees) + XGBoost (300 rounds) |
 | Ensemble       | Soft-voting (probability averaging) |
-| Dataset        | PhiUSIIL — phishing + legitimate URLs |
-| Feature count  | 40+ URL-based statistical features |
+| Dataset        | Local `Dataset.csv` — 247,950 URLs |
+| Feature count  | 25 selected URL-based statistical features |
 | Preprocessing  | StandardScaler normalization |
 
-### Features Extracted
-- **Length-based**: URL length, domain length, path length, query length
-- **Count-based**: dots, hyphens, slashes, `@`, `?`, `&`, `=`, `%` occurrences
-- **Entropy**: Shannon entropy of URL, hostname, path
-- **Binary flags**: Is IP address, has HTTPS, has port, is shortened URL, suspicious TLD, brand keyword
-- **Structural**: Subdomain depth, number of path tokens, parameter count
+The model uses the following selected features:
+
+```text
+url_length
+average_subdomain_length
+entropy_of_url
+entropy_of_domain
+domain_length
+number_of_subdomains
+number_of_special_char_in_url
+number_of_digits_in_domain
+number_of_dots_in_domain
+number_of_digits_in_url
+number_of_slash_in_url
+number_of_dots_in_url
+path_length
+number_of_hyphens_in_domain
+number_of_hyphens_in_url
+having_digits_in_domain
+number_of_equal_in_url
+number_of_digits_in_subdomain
+having_repeated_digits_in_domain
+having_digits_in_subdomain
+number_of_questionmark_in_url
+number_of_special_characters_in_domain
+number_of_underline_in_url
+having_query
+having_repeated_digits_in_url
+```
 
 ---
 
-##  API Reference
+## API Reference
 
 ### `POST /api/predict`
 ```json
@@ -118,6 +126,6 @@ Returns whether the model is loaded and ready.
 
 ---
 
-##  Disclaimer
+## Disclaimer
 
 This tool is built for **educational and research purposes**. It is not a substitute for a comprehensive security solution. Always exercise caution when clicking on unknown links.

@@ -5,7 +5,6 @@ app.py  —  Flask backend for the Phishing URL Detector
 import os
 import sys
 import joblib
-import numpy as np
 import pandas as pd
 
 from flask import Flask, request, jsonify, render_template, send_from_directory
@@ -37,7 +36,7 @@ def load_model():
         scaler          = joblib.load(SCALER_PATH)
         feature_columns = joblib.load(FEATURES_PATH)
         MODEL_READY     = True
-        print("[app] Model loaded successfully ✓")
+        print("[app] Model loaded successfully")
     except Exception as e:
         MODEL_ERROR = str(e)
         print(f"[app] ERROR loading model: {e}")
@@ -147,5 +146,5 @@ def api_batch():
 # ── Entry Point ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    print(f"\n🚀  Starting Phishing Detector on http://localhost:{port}\n")
+    print(f"\n Starting Phishing Detector on http://localhost:{port}\n")
     app.run(host="0.0.0.0", port=port, debug=False)
